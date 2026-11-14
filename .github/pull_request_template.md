@@ -1,11 +1,15 @@
 ## What & why
+
 <!-- One or two sentences explaining the change. Link the ROADMAP phase/task. -->
+
 Phase:
 
 ## How to test
+
 <!-- Steps a reviewer can follow locally in Chromium or via tests. -->
 
 ## Checklist
+
 - [ ] `pnpm check` passes locally (lint, format:check, typecheck, unit tests, build)
 - [ ] `pnpm test:e2e` passes for affected capture/UI flows (or explained if N/A)
 - [ ] Tests added/updated at the right layer (pure math in Vitest, browser flows in Playwright)

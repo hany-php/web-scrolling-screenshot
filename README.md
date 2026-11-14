@@ -3,11 +3,13 @@
 A high-precision, 100% client-side Chromium Manifest V3 browser extension for capturing **full-page scrolling screenshots** and **drag-to-select region screenshots** (including tall scrollable areas) at native **High-DPI (`devicePixelRatio`)** resolution — with an interactive preview tab and lossless PNG / adjustable JPEG & WebP export.
 
 ## Core Principles
+
 - **High-DPI Fidelity:** Captures at native `window.devicePixelRatio` with integer pixel math and zero blurry rescaling.
 - **Zero Friction, Zero Telemetry:** Works completely offline/locally with minimal permissions (`activeTab`, `scripting`, `offscreen`, `downloads`, `storage`), no accounts, no watermarks, and no capture limits.
 - **Bilingual UI:** Full support for **Arabic (RTL)** and **English (LTR)** via Chrome `_locales`.
 
 ## Documentation
+
 - **Owner Docs (Arabic):**
   - [Docs Index (`docs/README.md`)](docs/README.md)
   - [Product Requirements (`docs/PRD.md`)](docs/PRD.md)
@@ -25,6 +27,7 @@ A high-precision, 100% client-side Chromium Manifest V3 browser extension for ca
   - [Architecture Decision Records (`docs/adr/`)](docs/adr/0001-wxt-and-react-stack.md)
 
 ## Quick Start
+
 > Extension source scaffolding starts in **Phase 0** of [`docs/ROADMAP.md`](docs/ROADMAP.md).
 
 ```bash

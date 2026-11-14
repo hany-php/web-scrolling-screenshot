@@ -1,0 +1,42 @@
+{
+  "ext_name": {
+    "message": "Web Scrolling Screenshot",
+    "description": "Extension name shown in Chrome Web Store and toolbar"
+  },
+  "ext_description": {
+    "message": "Capture full-page scrolling screenshots and custom regions at native High-DPI resolution. 100% private and local.",
+    "description": "Extension description"
+  },
+  "popup_title": {
+    "message": "Web Scrolling Screenshot",
+    "description": "Popup header title"
+  },
+  "popup_capture_full": {
+    "message": "Capture Full Page",
+    "description": "Button to capture the entire scrollable page"
+  },
+  "popup_capture_full_hint": {
+    "message": "Auto-scrolls and stitches at full screen resolution",
+    "description": "Hint under full page capture button"
+  },
+  "popup_capture_region": {
+    "message": "Select Region",
+    "description": "Button to drag-select a custom page region"
+  },
+  "popup_capture_region_hint": {
+    "message": "Drag any area, including tall scrollable sections",
+    "description": "Hint under select region button"
+  },
+  "popup_status_ready": {
+    "message": "Ready to capture",
+    "description": "Ready status label in popup"
+  },
+  "preview_title": {
+    "message": "Screenshot Preview",
+    "description": "Preview tab document title"
+  },
+  "preview_empty_state": {
+    "message": "No active capture loaded yet. Trigger a capture from the extension popup.",
+    "description": "Shown when preview page is opened directly without a job id"
+  }
+}

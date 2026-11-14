@@ -1,0 +1,42 @@
+{
+  "ext_name": {
+    "message": "Web Scrolling Screenshot",
+    "description": "اسم الإضافة في المتجر وشريط المتصفح"
+  },
+  "ext_description": {
+    "message": "التقاط لقطات شاشة للصفحة كاملة أو لأجزاء محددة بدقة High-DPI عالية جداً، وبخصوصية محلية 100%.",
+    "description": "وصف الإضافة"
+  },
+  "popup_title": {
+    "message": "تصوير صفحات الويب",
+    "description": "عنوان النافذة المنبثقة"
+  },
+  "popup_capture_full": {
+    "message": "التقاط الصفحة كاملة",
+    "description": "زر التقاط الصفحة كاملة بالتمرير"
+  },
+  "popup_capture_full_hint": {
+    "message": "تمرير تلقائي ودمج بدقة الشاشة الأصلية الكاملة",
+    "description": "وصف مختصر لزر التقاط الصفحة كاملة"
+  },
+  "popup_capture_region": {
+    "message": "تحديد مساحة للتصوير",
+    "description": "زر تحديد مساحة حرة بالماوس"
+  },
+  "popup_capture_region_hint": {
+    "message": "اسحب لتحديد أي جزء حتى لو كان أطول من الشاشة",
+    "description": "وصف مختصر لزر تحديد المساحة"
+  },
+  "popup_status_ready": {
+    "message": "جاهز للالتقاط",
+    "description": "حالة الجاهزية في النافذة المنبثقة"
+  },
+  "preview_title": {
+    "message": "معاينة لقطة الشاشة",
+    "description": "عنوان تبويب المعاينة"
+  },
+  "preview_empty_state": {
+    "message": "لا توجد لقطة نشطة حالياً. ابدأ التصوير من أيقونة الإضافة.",
+    "description": "رسالة عند فتح صفحة المعاينة بدون لقطة"
+  }
+}

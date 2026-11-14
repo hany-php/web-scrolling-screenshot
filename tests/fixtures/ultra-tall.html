@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Ultra Tall Fixture (18000px)</title>
+    <style>
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      .top {
+        height: 16000px;
+        background: rgb(239, 246, 255);
+      }
+      .boundary {
+        height: 1000px;
+        background: rgb(34, 197, 94);
+      }
+      .bottom {
+        height: 1000px;
+        background: rgb(59, 130, 246);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="top">Top 16000px</div>
+    <div class="boundary">Crosses 16384px boundary</div>
+    <div class="bottom">Bottom 17000-18000px</div>
+  </body>
+</html>

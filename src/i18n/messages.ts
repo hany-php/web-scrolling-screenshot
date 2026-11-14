@@ -11,9 +11,19 @@ export function getTextDirection(locale: string = getUiLanguage()): TextDirectio
   return locale.toLowerCase().startsWith('ar') ? 'rtl' : 'ltr';
 }
 
-export function t(key: string, fallback: string = key): string {
+export function t(
+  key: string,
+  fallback: string = key,
+  substitutions?: string | readonly string[],
+): string {
   if (typeof chrome !== 'undefined' && typeof chrome.i18n.getMessage === 'function') {
-    const value = chrome.i18n.getMessage(key);
+    const subs =
+      substitutions === undefined
+        ? undefined
+        : typeof substitutions === 'string'
+          ? substitutions
+          : [...substitutions];
+    const value = chrome.i18n.getMessage(key, subs);
     if (value.length > 0) {
       return value;
     }

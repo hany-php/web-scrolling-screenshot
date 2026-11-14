@@ -1,10 +1,26 @@
+import fs from 'node:fs';
 import path from 'node:path';
 import { chromium, expect, test } from '@playwright/test';
 
 const EXTENSION_PATH = path.resolve(process.cwd(), '.output', 'chrome-mv3');
 
-test.describe('Phase 0 Extension Smoke Test', () => {
-  test('loads built MV3 extension, renders popup in English, and verifies minimal permissions', async () => {
+test.describe('Extension Popup & i18n Smoke Tests', () => {
+  test('ships minimal MV3 manifest permissions with zero host_permissions', () => {
+    const manifest = JSON.parse(
+      fs.readFileSync(path.join(EXTENSION_PATH, 'manifest.json'), 'utf-8'),
+    ) as { permissions?: string[]; host_permissions?: string[]; content_scripts?: unknown[] };
+
+    expect(manifest.permissions).toEqual([
+      'activeTab',
+      'scripting',
+      'offscreen',
+      'downloads',
+      'storage',
+    ]);
+    expect(manifest.host_permissions).toBeUndefined();
+    expect(manifest.content_scripts).toBeUndefined();
+  });
+  test('renders English LTR popup and shows friendly restricted-page error on extension page', async () => {
     const context = await chromium.launchPersistentContext('', {
       channel: 'chromium',
       headless: true,
@@ -41,7 +57,7 @@ test.describe('Phase 0 Extension Smoke Test', () => {
       await expect(page.locator('html')).toHaveAttribute('dir', 'ltr');
 
       await page.getByTestId('btn-capture-full').click();
-      await expect(page.getByTestId('popup-status')).toHaveText('Capture Full Page');
+      await expect(page.getByTestId('popup-status')).toContainText('cannot be captured');
 
       await page.goto(`chrome-extension://${extensionId}/preview.html`);
       await expect(page.getByTestId('preview-empty')).toBeVisible();

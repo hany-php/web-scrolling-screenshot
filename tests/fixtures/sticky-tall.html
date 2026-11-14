@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Sticky & Tall Fixture (6000px)</title>
+    <style>
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      body {
+        font-family: system-ui, sans-serif;
+        background: #ffffff;
+      }
+      #fixed-header {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 60px;
+        background: rgb(220, 38, 38);
+        color: #ffffff;
+        display: flex;
+        align-items: center;
+        padding-inline: 24px;
+        font-weight: 700;
+        z-index: 1000;
+      }
+      .band {
+        height: 1000px;
+        width: 100%;
+        padding-top: 80px;
+        padding-inline: 24px;
+        font-size: 24px;
+        font-weight: 600;
+        color: #0f172a;
+      }
+      .band-0 {
+        background: rgb(241, 245, 249);
+      }
+      .band-1 {
+        background: rgb(219, 234, 254);
+      }
+      .band-2 {
+        background: rgb(220, 252, 231);
+      }
+      .band-3 {
+        background: rgb(254, 249, 195);
+      }
+      .band-4 {
+        background: rgb(243, 232, 255);
+      }
+      .band-5 {
+        background: rgb(255, 237, 213);
+      }
+    </style>
+  </head>
+  <body>
+    <header id="fixed-header">FIXED HEADER</header>
+    <section class="band band-0">Band 0 (0 - 1000)</section>
+    <section class="band band-1">Band 1 (1000 - 2000)</section>
+    <section class="band band-2">Band 2 (2000 - 3000)</section>
+    <section class="band band-3">Band 3 (3000 - 4000)</section>
+    <section class="band band-4">Band 4 (4000 - 5000)</section>
+    <section class="band band-5">Band 5 (5000 - 6000)</section>
+  </body>
+</html>

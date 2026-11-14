@@ -31,6 +31,38 @@
     "message": "جاهز للالتقاط",
     "description": "حالة الجاهزية في النافذة المنبثقة"
   },
+  "popup_status_capturing": {
+    "message": "جارٍ التقاط الصفحة… $COMPLETED$ من $TOTAL$",
+    "description": "نسبة التقدم أثناء التمرير",
+    "placeholders": {
+      "completed": { "content": "$1" },
+      "total": { "content": "$2" }
+    }
+  },
+  "popup_status_stitching": {
+    "message": "جارٍ دمج الصورة عالية الدقة…",
+    "description": "حالة التجميع النهائي"
+  },
+  "popup_status_done": {
+    "message": "تم حفظ لقطة الشاشة!",
+    "description": "حالة اكتمال الحفظ"
+  },
+  "popup_status_cancelled": {
+    "message": "تم إلغاء الالتقاط",
+    "description": "حالة إلغاء الالتقاط"
+  },
+  "popup_btn_cancel": {
+    "message": "إلغاء الالتقاط",
+    "description": "زر إيقاف الالتقاط الجاري"
+  },
+  "popup_error_restricted_page": {
+    "message": "لا يمكن تصوير صفحات النظام الداخلية أو متجر الإضافات لدواعي أمان المتصفح.",
+    "description": "رسالة خطأ عند محاولة تصوير صفحة محمية"
+  },
+  "popup_error_generic": {
+    "message": "تعذّر إكمال الالتقاط. حدّث الصفحة وحاول مرة أخرى.",
+    "description": "رسالة خطأ عامة"
+  },
   "preview_title": {
     "message": "معاينة لقطة الشاشة",
     "description": "عنوان تبويب المعاينة"

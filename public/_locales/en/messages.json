@@ -31,6 +31,38 @@
     "message": "Ready to capture",
     "description": "Ready status label in popup"
   },
+  "popup_status_capturing": {
+    "message": "Capturing page… $COMPLETED$ / $TOTAL$",
+    "description": "Progress text during scrolling capture",
+    "placeholders": {
+      "completed": { "content": "$1" },
+      "total": { "content": "$2" }
+    }
+  },
+  "popup_status_stitching": {
+    "message": "Stitching High-DPI PNG…",
+    "description": "Status while encoding final image"
+  },
+  "popup_status_done": {
+    "message": "Screenshot saved!",
+    "description": "Status after download completes"
+  },
+  "popup_status_cancelled": {
+    "message": "Capture cancelled",
+    "description": "Status when user cancels capture"
+  },
+  "popup_btn_cancel": {
+    "message": "Cancel Capture",
+    "description": "Button to abort active capture"
+  },
+  "popup_error_restricted_page": {
+    "message": "Browser system pages and store pages cannot be captured for security reasons.",
+    "description": "Friendly error when active tab is chrome:// or Web Store"
+  },
+  "popup_error_generic": {
+    "message": "Capture failed. Please refresh the page and try again.",
+    "description": "Fallback error message"
+  },
   "preview_title": {
     "message": "Screenshot Preview",
     "description": "Preview tab document title"

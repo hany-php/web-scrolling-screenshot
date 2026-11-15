@@ -12,6 +12,20 @@ export default defineConfig({
     description: '__MSG_ext_description__',
     default_locale: 'en',
     permissions: ['activeTab', 'scripting', 'offscreen', 'downloads', 'storage'],
+    commands: {
+      'capture-full-page': {
+        suggested_key: {
+          default: 'Alt+Shift+F',
+        },
+        description: '__MSG_cmd_capture_full__',
+      },
+      'capture-region': {
+        suggested_key: {
+          default: 'Alt+Shift+R',
+        },
+        description: '__MSG_cmd_capture_region__',
+      },
+    },
     icons: {
       16: 'icon/16.png',
       32: 'icon/32.png',

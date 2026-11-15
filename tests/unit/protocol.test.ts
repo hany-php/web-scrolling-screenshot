@@ -52,6 +52,24 @@ describe('isValidExtensionMessage', () => {
     ).toBe(true);
     expect(
       isValidExtensionMessage({
+        action: 'PREPARE_CAPTURE',
+        jobId: 'job-1',
+        mode: 'region',
+        regionCss: { x: 10, y: 20, width: 300, height: 200 },
+      }),
+    ).toBe(true);
+    expect(isValidExtensionMessage({ action: 'START_REGION_SELECT', jobId: 'job-2' })).toBe(true);
+    expect(isValidExtensionMessage({ action: 'CANCEL_REGION_SELECT', jobId: 'job-2' })).toBe(true);
+    expect(isValidExtensionMessage({ action: 'REGION_CANCELLED', jobId: 'job-2' })).toBe(true);
+    expect(
+      isValidExtensionMessage({
+        action: 'REGION_SELECTED',
+        jobId: 'job-2',
+        regionCss: { x: 0, y: 0, width: 100, height: 500 },
+      }),
+    ).toBe(true);
+    expect(
+      isValidExtensionMessage({
         action: 'REVOKE_PART_URLS',
         urls: ['blob:chrome-extension://abc/123'],
       }),
@@ -85,8 +103,41 @@ describe('isValidExtensionMessage', () => {
     ).toBe(false);
     expect(
       isValidExtensionMessage({
+        action: 'PREPARE_CAPTURE',
+        jobId: 'job-1',
+        mode: 'region',
+        regionCss: { x: 10, y: 20, width: 300, height: 200 },
+      }),
+    ).toBe(true);
+    expect(isValidExtensionMessage({ action: 'START_REGION_SELECT', jobId: 'job-2' })).toBe(true);
+    expect(isValidExtensionMessage({ action: 'CANCEL_REGION_SELECT', jobId: 'job-2' })).toBe(true);
+    expect(isValidExtensionMessage({ action: 'REGION_CANCELLED', jobId: 'job-2' })).toBe(true);
+    expect(
+      isValidExtensionMessage({
+        action: 'REGION_SELECTED',
+        jobId: 'job-2',
+        regionCss: { x: 0, y: 0, width: 100, height: 500 },
+      }),
+    ).toBe(true);
+    expect(
+      isValidExtensionMessage({
         action: 'REVOKE_PART_URLS',
         urls: ['https://example.com/not-a-blob'],
+      }),
+    ).toBe(false);
+    expect(
+      isValidExtensionMessage({
+        action: 'PREPARE_CAPTURE',
+        jobId: 'job-1',
+        mode: 'region',
+        regionCss: { x: 0, y: 0, width: 0, height: 100 },
+      }),
+    ).toBe(false);
+    expect(
+      isValidExtensionMessage({
+        action: 'REGION_SELECTED',
+        jobId: 'job-2',
+        regionCss: { x: -1, y: 0, width: 100, height: 100 },
       }),
     ).toBe(false);
     expect(isValidExtensionMessage({ action: 'UNKNOWN_ACTION' })).toBe(false);

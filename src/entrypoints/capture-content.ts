@@ -1,6 +1,8 @@
 import { settleViewportPaint } from '../capture/lazy-loader';
-import { type CapturePlan, computeCapturePlan } from '../capture/scroll-planner';
+import { type CapturePlan, type CssRect, computeCapturePlan } from '../capture/scroll-planner';
+import { type ActiveSelectionSession, startRegionSelection } from '../capture/selection-overlay';
 import { StickyManager } from '../capture/sticky-manager';
+import { getTextDirection, t } from '../i18n/messages';
 import { isValidExtensionMessage } from '../messaging/protocol';
 
 interface SavedScrollState {
@@ -14,6 +16,8 @@ interface SavedScrollState {
 }
 
 const activeSessions = new Map<string, SavedScrollState>();
+let activeSelection: { readonly jobId: string; readonly session: ActiveSelectionSession } | null =
+  null;
 
 function getPageDimensions(): {
   pageWidthCss: number;
@@ -49,7 +53,10 @@ function getPageDimensions(): {
   };
 }
 
-function prepareSession(jobId: string): { plan: CapturePlan; hostname: string } {
+function prepareSession(
+  jobId: string,
+  regionCss?: CssRect,
+): { plan: CapturePlan; hostname: string } {
   const docEl = document.documentElement;
   const body = document.body as HTMLElement | null;
 
@@ -70,7 +77,7 @@ function prepareSession(jobId: string): { plan: CapturePlan; hostname: string } 
     body.style.setProperty('scroll-behavior', 'auto', 'important');
   }
 
-  const plan = computeCapturePlan(getPageDimensions());
+  const plan = computeCapturePlan(getPageDimensions(), regionCss);
   return {
     plan,
     hostname: window.location.hostname || 'local-page',
@@ -116,6 +123,47 @@ function restoreSession(jobId: string): void {
   }
 }
 
+function handleStartRegionSelect(jobId: string): void {
+  if (activeSelection !== null) {
+    activeSelection.session.cancel();
+    activeSelection = null;
+  }
+
+  const session = startRegionSelection(
+    {
+      hintDrag: t('overlay_hint_drag', 'Drag to select an area'),
+      hintEsc: t('overlay_hint_esc', 'Esc to cancel'),
+      cancelLabel: t('overlay_btn_cancel', 'Cancel'),
+      dir: getTextDirection(),
+    },
+    () => {
+      const dims = getPageDimensions();
+      return { widthCss: dims.pageWidthCss, heightCss: dims.pageHeightCss };
+    },
+  );
+
+  activeSelection = { jobId, session };
+
+  void session.promise.then((regionCss) => {
+    if (activeSelection?.jobId === jobId) {
+      activeSelection = null;
+    }
+    if (regionCss === null) {
+      chrome.runtime.sendMessage({ action: 'REGION_CANCELLED', jobId }, () => {
+        if (chrome.runtime.lastError) {
+          return;
+        }
+      });
+      return;
+    }
+    chrome.runtime.sendMessage({ action: 'REGION_SELECTED', jobId, regionCss }, () => {
+      if (chrome.runtime.lastError) {
+        return;
+      }
+    });
+  });
+}
+
 const LISTENER_FLAG = '__wssCaptureListenerRegistered';
 
 export default defineUnlistedScript(() => {
@@ -131,9 +179,24 @@ export default defineUnlistedScript(() => {
     }
 
     switch (message.action) {
+      case 'START_REGION_SELECT': {
+        handleStartRegionSelect(message.jobId);
+        sendResponse({ ok: true });
+        return false;
+      }
+
+      case 'CANCEL_REGION_SELECT': {
+        if (activeSelection?.jobId === message.jobId) {
+          activeSelection.session.cancel();
+          activeSelection = null;
+        }
+        sendResponse({ ok: true });
+        return false;
+      }
+
       case 'PREPARE_CAPTURE': {
         try {
-          const result = prepareSession(message.jobId);
+          const result = prepareSession(message.jobId, message.regionCss);
           sendResponse({ ok: true, ...result });
         } catch (err: unknown) {
           sendResponse({

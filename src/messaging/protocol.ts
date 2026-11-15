@@ -1,4 +1,4 @@
-import type { CapturePlan, CaptureStep } from '../capture/scroll-planner';
+import type { CapturePlan, CaptureStep, CssRect } from '../capture/scroll-planner';
 import type { CaptureMode } from '../shared/constants';
 import type { CaptureErrorCode } from '../shared/errors';
 
@@ -10,7 +10,8 @@ export interface PixelRect {
 }
 
 export interface CaptureStatusSnapshot {
-  readonly status: 'idle' | 'capturing' | 'stitching' | 'done' | 'error' | 'cancelled';
+  readonly status:
+    'idle' | 'selecting' | 'capturing' | 'stitching' | 'done' | 'error' | 'cancelled';
   readonly mode?: CaptureMode;
   readonly completed: number;
   readonly total: number;
@@ -46,6 +47,24 @@ export type ExtensionMessage =
       readonly action: 'PREPARE_CAPTURE';
       readonly jobId: string;
       readonly mode: CaptureMode;
+      readonly regionCss?: CssRect;
+    }
+  | {
+      readonly action: 'START_REGION_SELECT';
+      readonly jobId: string;
+    }
+  | {
+      readonly action: 'CANCEL_REGION_SELECT';
+      readonly jobId: string;
+    }
+  | {
+      readonly action: 'REGION_SELECTED';
+      readonly jobId: string;
+      readonly regionCss: CssRect;
+    }
+  | {
+      readonly action: 'REGION_CANCELLED';
+      readonly jobId: string;
     }
   | {
       readonly action: 'SCROLL_TO_STEP';
@@ -98,6 +117,18 @@ function isPositiveFinite(value: unknown): value is number {
   return typeof value === 'number' && Number.isFinite(value) && value > 0;
 }
 
+function isCssRect(value: unknown): value is CssRect {
+  if (!isRecord(value)) {
+    return false;
+  }
+  return (
+    isFiniteNonNeg(value['x']) &&
+    isFiniteNonNeg(value['y']) &&
+    isPositiveFinite(value['width']) &&
+    isPositiveFinite(value['height'])
+  );
+}
+
 function isCaptureStep(value: unknown): value is CaptureStep {
   if (!isRecord(value)) {
     return false;
@@ -136,7 +167,18 @@ export function isValidExtensionMessage(value: unknown): value is ExtensionMessa
       return (
         typeof value['jobId'] === 'string' &&
         value['jobId'].length > 0 &&
-        (value['mode'] === 'full' || value['mode'] === 'region')
+        (value['mode'] === 'full' || value['mode'] === 'region') &&
+        (value['regionCss'] === undefined || isCssRect(value['regionCss']))
+      );
+    case 'START_REGION_SELECT':
+    case 'CANCEL_REGION_SELECT':
+    case 'REGION_CANCELLED':
+      return typeof value['jobId'] === 'string' && value['jobId'].length > 0;
+    case 'REGION_SELECTED':
+      return (
+        typeof value['jobId'] === 'string' &&
+        value['jobId'].length > 0 &&
+        isCssRect(value['regionCss'])
       );
     case 'SCROLL_TO_STEP':
       return (

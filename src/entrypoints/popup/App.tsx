@@ -23,6 +23,8 @@ function resolveStatusLabel(snapshot: CaptureStatusSnapshot): string {
   switch (snapshot.status) {
     case 'idle':
       return t('popup_status_ready', 'Ready to capture');
+    case 'selecting':
+      return t('popup_status_selecting', 'Select an area on the page (press Esc to cancel)…');
     case 'capturing':
       return t(
         'popup_status_capturing',
@@ -71,6 +73,9 @@ export function App(): ReactElement {
     const listener = (message: unknown): void => {
       if (isValidExtensionMessage(message) && message.action === 'CAPTURE_STATE') {
         setSnapshot(message.state);
+        if (message.state.status === 'selecting' && getTargetTabIdFromSearch() === undefined) {
+          window.close();
+        }
       }
     };
 
@@ -80,7 +85,10 @@ export function App(): ReactElement {
     };
   }, []);
 
-  const isBusy = snapshot.status === 'capturing' || snapshot.status === 'stitching';
+  const isBusy =
+    snapshot.status === 'selecting' ||
+    snapshot.status === 'capturing' ||
+    snapshot.status === 'stitching';
   const progressPercent =
     snapshot.total > 0 ? Math.min(100, Math.round((snapshot.completed / snapshot.total) * 100)) : 0;
 
@@ -161,9 +169,17 @@ export function App(): ReactElement {
             <span className="mt-0.5 rounded-md bg-[var(--wss-accent)] p-2 text-white">
               <Camera size={16} aria-hidden="true" />
             </span>
-            <span className="flex flex-col gap-0.5">
-              <span className="text-sm font-medium text-[var(--wss-text-primary)]">
-                {t('popup_capture_full', 'Capture Full Page')}
+            <span className="flex flex-1 flex-col gap-0.5">
+              <span className="flex items-center justify-between gap-2">
+                <span className="text-sm font-medium text-[var(--wss-text-primary)]">
+                  {t('popup_capture_full', 'Capture Full Page')}
+                </span>
+                <kbd
+                  dir="ltr"
+                  className="rounded border border-[var(--wss-border)] bg-[var(--wss-bg-elevated)] px-1.5 py-0.5 font-mono text-[10px] text-[var(--wss-text-secondary)]"
+                >
+                  Alt+Shift+F
+                </kbd>
               </span>
               <span className="text-xs text-[var(--wss-text-secondary)]">
                 {t(
@@ -177,19 +193,25 @@ export function App(): ReactElement {
           <button
             type="button"
             data-testid="btn-capture-region"
-            disabled
-            title="Available in Phase 2"
             onClick={() => {
               handleStart('region');
             }}
-            className="flex cursor-not-allowed items-start gap-3 rounded-lg border border-[var(--wss-border)] bg-[var(--wss-bg-surface)] p-3 text-start opacity-60"
+            className="flex cursor-pointer items-start gap-3 rounded-lg border border-[var(--wss-border)] bg-[var(--wss-bg-surface)] p-3 text-start transition-colors hover:border-[var(--wss-accent)] hover:bg-[var(--wss-bg-elevated)]"
           >
             <span className="mt-0.5 rounded-md bg-[var(--wss-bg-elevated)] p-2 text-[var(--wss-text-primary)]">
               <Crop size={16} aria-hidden="true" />
             </span>
-            <span className="flex flex-col gap-0.5">
-              <span className="text-sm font-medium text-[var(--wss-text-primary)]">
-                {t('popup_capture_region', 'Select Region')}
+            <span className="flex flex-1 flex-col gap-0.5">
+              <span className="flex items-center justify-between gap-2">
+                <span className="text-sm font-medium text-[var(--wss-text-primary)]">
+                  {t('popup_capture_region', 'Select Region')}
+                </span>
+                <kbd
+                  dir="ltr"
+                  className="rounded border border-[var(--wss-border)] bg-[var(--wss-bg-elevated)] px-1.5 py-0.5 font-mono text-[10px] text-[var(--wss-text-secondary)]"
+                >
+                  Alt+Shift+R
+                </kbd>
               </span>
               <span className="text-xs text-[var(--wss-text-secondary)]">
                 {t(

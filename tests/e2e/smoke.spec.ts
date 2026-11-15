@@ -8,7 +8,12 @@ test.describe('Extension Popup & i18n Smoke Tests', () => {
   test('ships minimal MV3 manifest permissions with zero host_permissions', () => {
     const manifest = JSON.parse(
       fs.readFileSync(path.join(EXTENSION_PATH, 'manifest.json'), 'utf-8'),
-    ) as { permissions?: string[]; host_permissions?: string[]; content_scripts?: unknown[] };
+    ) as {
+      permissions?: string[];
+      host_permissions?: string[];
+      content_scripts?: unknown[];
+      commands?: Record<string, unknown>;
+    };
 
     expect(manifest.permissions).toEqual([
       'activeTab',
@@ -19,6 +24,8 @@ test.describe('Extension Popup & i18n Smoke Tests', () => {
     ]);
     expect(manifest.host_permissions).toBeUndefined();
     expect(manifest.content_scripts).toBeUndefined();
+    expect(manifest.commands).toHaveProperty('capture-full-page');
+    expect(manifest.commands).toHaveProperty('capture-region');
   });
   test('renders English LTR popup and shows friendly restricted-page error on extension page', async () => {
     const context = await chromium.launchPersistentContext('', {

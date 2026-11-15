@@ -27,6 +27,10 @@
     "message": "Drag any area, including tall scrollable sections",
     "description": "Hint under select region button"
   },
+  "popup_status_selecting": {
+    "message": "Select an area on the page (press Esc to cancel)…",
+    "description": "Status while region selection overlay is active"
+  },
   "popup_status_ready": {
     "message": "Ready to capture",
     "description": "Ready status label in popup"
@@ -70,5 +74,25 @@
   "preview_empty_state": {
     "message": "No active capture loaded yet. Trigger a capture from the extension popup.",
     "description": "Shown when preview page is opened directly without a job id"
+  },
+  "overlay_hint_drag": {
+    "message": "Drag to select an area",
+    "description": "Instruction pill shown on page during region selection"
+  },
+  "overlay_hint_esc": {
+    "message": "Esc to cancel",
+    "description": "Short Escape hint next to dimensions badge"
+  },
+  "overlay_btn_cancel": {
+    "message": "Cancel",
+    "description": "Cancel button in region selection toolbar"
+  },
+  "cmd_capture_full": {
+    "message": "Capture full page scrolling screenshot",
+    "description": "Keyboard command description for full-page capture"
+  },
+  "cmd_capture_region": {
+    "message": "Select and capture custom page region",
+    "description": "Keyboard command description for drag-to-select region capture"
   }
 }

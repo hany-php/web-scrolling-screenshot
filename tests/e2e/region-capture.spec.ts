@@ -147,7 +147,25 @@ test.describe('Phase 2 Drag-to-Select Region Capture E2E', () => {
       await fixturePage.mouse.up();
 
       await expect(fixturePage.locator('[data-wss-overlay="true"]')).toHaveCount(0);
-      await expect(popupPage.getByTestId('popup-status')).toHaveText('Screenshot saved!', {
+      await expect(popupPage.getByTestId('popup-status')).toHaveText(
+        'Preview opened — ready to download!',
+        {
+          timeout: 15_000,
+        },
+      );
+
+      let previewPage: Page | undefined;
+      await expect
+        .poll(() => {
+          previewPage = context.pages().find((p) => p.url().includes('/preview.html?jobId='));
+          return Boolean(previewPage);
+        })
+        .toBe(true);
+      if (!previewPage) {
+        throw new Error('Preview tab did not open');
+      }
+      await previewPage.getByTestId('btn-download').click();
+      await expect(previewPage.getByTestId('preview-download-status')).toHaveText('Downloaded!', {
         timeout: 15_000,
       });
 
@@ -227,8 +245,26 @@ test.describe('Phase 2 Drag-to-Select Region Capture E2E', () => {
       await fixturePage.mouse.up();
       await expect(fixturePage.locator('[data-wss-overlay="true"]')).toHaveCount(0);
 
-      await expect(popupPage.getByTestId('popup-status')).toHaveText('Screenshot saved!', {
-        timeout: 25_000,
+      await expect(popupPage.getByTestId('popup-status')).toHaveText(
+        'Preview opened — ready to download!',
+        {
+          timeout: 25_000,
+        },
+      );
+
+      let previewPage: Page | undefined;
+      await expect
+        .poll(() => {
+          previewPage = context.pages().find((p) => p.url().includes('/preview.html?jobId='));
+          return Boolean(previewPage);
+        })
+        .toBe(true);
+      if (!previewPage) {
+        throw new Error('Preview tab did not open');
+      }
+      await previewPage.getByTestId('btn-download').click();
+      await expect(previewPage.getByTestId('preview-download-status')).toHaveText('Downloaded!', {
+        timeout: 15_000,
       });
 
       const downloaded = await serviceWorker.evaluate(async () => {

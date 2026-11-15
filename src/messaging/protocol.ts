@@ -18,6 +18,7 @@ export interface CaptureStatusSnapshot {
   readonly errorCode?: CaptureErrorCode;
   readonly errorMessage?: string;
   readonly downloadedCount?: number;
+  readonly previewJobId?: string;
 }
 
 export interface StitchedPartOutput {
@@ -95,6 +96,7 @@ export type ExtensionMessage =
       readonly action: 'FINALIZE_STITCH_JOB';
       readonly jobId: string;
       readonly hostname: string;
+      readonly mode: CaptureMode;
     }
   | {
       readonly action: 'ABORT_STITCH_JOB';
@@ -211,7 +213,8 @@ export function isValidExtensionMessage(value: unknown): value is ExtensionMessa
       return (
         typeof value['jobId'] === 'string' &&
         value['jobId'].length > 0 &&
-        typeof value['hostname'] === 'string'
+        typeof value['hostname'] === 'string' &&
+        (value['mode'] === 'full' || value['mode'] === 'region')
       );
     case 'REVOKE_PART_URLS':
       return (

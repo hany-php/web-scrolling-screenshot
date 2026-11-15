@@ -48,8 +48,8 @@
     "description": "حالة التجميع النهائي"
   },
   "popup_status_done": {
-    "message": "تم حفظ لقطة الشاشة!",
-    "description": "حالة اكتمال الحفظ"
+    "message": "تم فتح المعاينة — جاهز للتنزيل!",
+    "description": "الحالة بعد اكتمال الالتقاط وفتح تبويب المعاينة"
   },
   "popup_status_cancelled": {
     "message": "تم إلغاء الالتقاط",
@@ -67,6 +67,14 @@
     "message": "تعذّر إكمال الالتقاط. حدّث الصفحة وحاول مرة أخرى.",
     "description": "رسالة خطأ عامة"
   },
+  "popup_format_label": {
+    "message": "الصيغة الافتراضية",
+    "description": "تسمية شريط اختيار صيغة التصدير في النافذة المنبثقة"
+  },
+  "popup_quality_label": {
+    "message": "الجودة",
+    "description": "تسمية شريط جودة ضغط JPEG و WebP"
+  },
   "preview_title": {
     "message": "معاينة لقطة الشاشة",
     "description": "عنوان تبويب المعاينة"
@@ -74,6 +82,68 @@
   "preview_empty_state": {
     "message": "لا توجد لقطة نشطة حالياً. ابدأ التصوير من أيقونة الإضافة.",
     "description": "رسالة عند فتح صفحة المعاينة بدون لقطة"
+  },
+  "preview_not_found": {
+    "message": "انتهت صلاحية هذه اللقطة المؤقتة أو أُغلقت. التقط لقطة جديدة من أيقونة الإضافة.",
+    "description": "رسالة عند عدم العثور على اللقطة في التخزين المحلي"
+  },
+  "preview_loading": {
+    "message": "جارٍ تحميل اللقطة…",
+    "description": "رسالة أثناء قراءة الصورة من IndexedDB"
+  },
+  "preview_zoom_fit": {
+    "message": "ملائمة",
+    "description": "زر ملاءمة الصورة لعرض الشاشة"
+  },
+  "preview_zoom_100": {
+    "message": "100%",
+    "description": "زر عرض الصورة بالحجم الحقيقي 1:1"
+  },
+  "preview_zoom_in": {
+    "message": "تكبير",
+    "description": "وصف زر التكبير"
+  },
+  "preview_zoom_out": {
+    "message": "تصغير",
+    "description": "وصف زر التصغير"
+  },
+  "preview_parts_badge": {
+    "message": "$COUNT$ أجزاء",
+    "description": "شارة عدد الأجزاء في اللقطات الطويلة جداً",
+    "placeholders": {
+      "count": { "content": "$1" }
+    }
+  },
+  "preview_part_header": {
+    "message": "الجزء $INDEX$ من $TOTAL$",
+    "description": "عنوان تعريفي لكل جزء عند تقسيم الصفحة",
+    "placeholders": {
+      "index": { "content": "$1" },
+      "total": { "content": "$2" }
+    }
+  },
+  "preview_btn_download": {
+    "message": "تنزيل",
+    "description": "زر تنزيل الصورة"
+  },
+  "preview_btn_download_all": {
+    "message": "تنزيل الكل ($COUNT$)",
+    "description": "زر تنزيل جميع الأجزاء",
+    "placeholders": {
+      "count": { "content": "$1" }
+    }
+  },
+  "preview_downloading": {
+    "message": "جارٍ التصدير…",
+    "description": "حالة الزر أثناء التشفير والتنزيل"
+  },
+  "preview_download_complete": {
+    "message": "تم التنزيل!",
+    "description": "إشعار نجاح التنزيل"
+  },
+  "preview_download_error": {
+    "message": "تعذّر تنزيل الملف. حاول مرة أخرى.",
+    "description": "إشعار فشل التصدير أو التنزيل"
   },
   "overlay_hint_drag": {
     "message": "اسحب بالماوس لتحديد المساحة",

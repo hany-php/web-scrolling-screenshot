@@ -2,8 +2,15 @@ import { Camera, Crop, XCircle } from 'lucide-react';
 import { type ReactElement, useEffect, useState } from 'react';
 import { t } from '../../i18n/messages';
 import { type CaptureStatusSnapshot, isValidExtensionMessage } from '../../messaging/protocol';
-import type { CaptureMode } from '../../shared/constants';
+import type { CaptureMode, ExportFormat } from '../../shared/constants';
 import type { CaptureErrorCode } from '../../shared/errors';
+import {
+  DEFAULT_EXPORT_PREFERENCES,
+  type ExportPreferences,
+  loadExportPreferences,
+  saveExportPreferences,
+} from '../../shared/preferences';
+import { MAX_QUALITY_PERCENT, MIN_QUALITY_PERCENT } from '../../stitcher/export-utils';
 
 interface StateResponse {
   readonly ok: boolean;
@@ -34,7 +41,7 @@ function resolveStatusLabel(snapshot: CaptureStatusSnapshot): string {
     case 'stitching':
       return t('popup_status_stitching', 'Stitching High-DPI PNG…');
     case 'done':
-      return t('popup_status_done', 'Screenshot saved!');
+      return t('popup_status_done', 'Preview opened — ready to download!');
     case 'cancelled':
       return t('popup_status_cancelled', 'Capture cancelled');
     case 'error':
@@ -58,8 +65,11 @@ export function App(): ReactElement {
     completed: 0,
     total: 0,
   });
+  const [prefs, setPrefs] = useState<ExportPreferences>(DEFAULT_EXPORT_PREFERENCES);
 
   useEffect(() => {
+    void loadExportPreferences().then(setPrefs);
+
     chrome.runtime.sendMessage(
       { action: 'GET_CAPTURE_STATE' },
       (res: StateResponse | undefined) => {
@@ -119,6 +129,13 @@ export function App(): ReactElement {
       }
     });
   }
+
+  function updatePrefs(next: ExportPreferences): void {
+    setPrefs(next);
+    void saveExportPreferences(next);
+  }
+
+  const formats: readonly ExportFormat[] = ['png', 'jpeg', 'webp'];
 
   return (
     <main className="flex flex-col gap-3 p-4">
@@ -221,6 +238,76 @@ export function App(): ReactElement {
               </span>
             </span>
           </button>
+
+          <section
+            aria-label={t('popup_format_label', 'Default Format')}
+            className="flex flex-col gap-2 rounded-lg border border-[var(--wss-border)] bg-[var(--wss-bg-surface)] p-2.5"
+          >
+            <div className="flex items-center justify-between gap-2">
+              <span className="text-xs font-medium text-[var(--wss-text-secondary)]">
+                {t('popup_format_label', 'Default Format')}
+              </span>
+              <div
+                role="group"
+                aria-label={t('popup_format_label', 'Default Format')}
+                className="flex rounded-md border border-[var(--wss-border)] bg-[var(--wss-bg-elevated)] p-0.5"
+              >
+                {formats.map((fmt) => {
+                  const active = prefs.format === fmt;
+                  return (
+                    <button
+                      key={fmt}
+                      type="button"
+                      data-testid={`popup-format-${fmt}`}
+                      aria-pressed={active}
+                      onClick={() => {
+                        updatePrefs({ ...prefs, format: fmt });
+                      }}
+                      className={`cursor-pointer rounded px-2 py-0.5 text-[11px] font-semibold uppercase transition-colors ${
+                        active
+                          ? 'bg-[var(--wss-accent)] text-white'
+                          : 'text-[var(--wss-text-secondary)] hover:text-[var(--wss-text-primary)]'
+                      }`}
+                    >
+                      {fmt}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {prefs.format !== 'png' ? (
+              <div className="flex items-center gap-2">
+                <label
+                  htmlFor="popup-quality-slider"
+                  className="text-xs text-[var(--wss-text-secondary)]"
+                >
+                  {t('popup_quality_label', 'Quality')}
+                </label>
+                <input
+                  id="popup-quality-slider"
+                  data-testid="popup-quality-slider"
+                  type="range"
+                  min={MIN_QUALITY_PERCENT}
+                  max={MAX_QUALITY_PERCENT}
+                  value={prefs.qualityPercent}
+                  onChange={(e) => {
+                    updatePrefs({
+                      ...prefs,
+                      qualityPercent: Number(e.target.value),
+                    });
+                  }}
+                  className="h-1.5 flex-1 cursor-pointer accent-[var(--wss-accent)]"
+                />
+                <span
+                  dir="ltr"
+                  className="w-9 text-end font-mono text-[11px] font-medium text-[var(--wss-text-primary)]"
+                >
+                  {String(prefs.qualityPercent)}%
+                </span>
+              </div>
+            ) : null}
+          </section>
         </div>
       )}
 

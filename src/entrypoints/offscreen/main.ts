@@ -1,5 +1,6 @@
 import { isValidExtensionMessage } from '../../messaging/protocol';
 import { CanvasStitcher } from '../../stitcher/canvas-stitcher';
+import { pruneExpiredCaptureRecords, saveCaptureRecord } from '../../stitcher/capture-store';
 
 const stitcher = new CanvasStitcher();
 
@@ -47,9 +48,16 @@ function handleAsyncMessage(message: unknown, sendResponse: (response: unknown) 
 
     case 'FINALIZE_STITCH_JOB':
       void stitcher
-        .finalizeJob(message.jobId, message.hostname)
-        .then((parts) => {
-          sendResponse({ ok: true, parts });
+        .finalizeJobToStore(message.jobId, message.hostname, message.mode)
+        .then(async (record) => {
+          await saveCaptureRecord(record);
+          await pruneExpiredCaptureRecords().catch(() => undefined);
+          sendResponse({
+            ok: true,
+            partsCount: record.parts.length,
+            totalWidthPx: record.totalWidthPx,
+            totalHeightPx: record.totalHeightPx,
+          });
         })
         .catch((err: unknown) => {
           sendResponse({

@@ -48,8 +48,8 @@
     "description": "Status while encoding final image"
   },
   "popup_status_done": {
-    "message": "Screenshot saved!",
-    "description": "Status after download completes"
+    "message": "Preview opened — ready to download!",
+    "description": "Status after capture completes and opens preview tab"
   },
   "popup_status_cancelled": {
     "message": "Capture cancelled",
@@ -67,6 +67,14 @@
     "message": "Capture failed. Please refresh the page and try again.",
     "description": "Fallback error message"
   },
+  "popup_format_label": {
+    "message": "Default Format",
+    "description": "Label above quick export format selector in popup"
+  },
+  "popup_quality_label": {
+    "message": "Quality",
+    "description": "Label for JPEG/WebP quality slider"
+  },
   "preview_title": {
     "message": "Screenshot Preview",
     "description": "Preview tab document title"
@@ -74,6 +82,68 @@
   "preview_empty_state": {
     "message": "No active capture loaded yet. Trigger a capture from the extension popup.",
     "description": "Shown when preview page is opened directly without a job id"
+  },
+  "preview_not_found": {
+    "message": "This capture has expired or was closed. Take a new screenshot from the extension popup.",
+    "description": "Shown when jobId is missing from local IndexedDB cache"
+  },
+  "preview_loading": {
+    "message": "Loading screenshot…",
+    "description": "Shown while reading capture blobs from IndexedDB"
+  },
+  "preview_zoom_fit": {
+    "message": "Fit",
+    "description": "Button to fit screenshot width inside viewport"
+  },
+  "preview_zoom_100": {
+    "message": "100%",
+    "description": "Button to view screenshot at 1:1 native pixels"
+  },
+  "preview_zoom_in": {
+    "message": "Zoom in",
+    "description": "Accessible label for zoom in button"
+  },
+  "preview_zoom_out": {
+    "message": "Zoom out",
+    "description": "Accessible label for zoom out button"
+  },
+  "preview_parts_badge": {
+    "message": "$COUNT$ parts",
+    "description": "Badge showing number of chunks in an ultra-tall capture",
+    "placeholders": {
+      "count": { "content": "$1" }
+    }
+  },
+  "preview_part_header": {
+    "message": "Part $INDEX$ of $TOTAL$",
+    "description": "Caption above each chunk in multi-part preview",
+    "placeholders": {
+      "index": { "content": "$1" },
+      "total": { "content": "$2" }
+    }
+  },
+  "preview_btn_download": {
+    "message": "Download",
+    "description": "Download single image button"
+  },
+  "preview_btn_download_all": {
+    "message": "Download All ($COUNT$)",
+    "description": "Download multiple image parts button",
+    "placeholders": {
+      "count": { "content": "$1" }
+    }
+  },
+  "preview_downloading": {
+    "message": "Exporting…",
+    "description": "Button state while encoding and downloading"
+  },
+  "preview_download_complete": {
+    "message": "Downloaded!",
+    "description": "Feedback shown after download succeeds"
+  },
+  "preview_download_error": {
+    "message": "Download failed. Please try again.",
+    "description": "Feedback shown if encoding or download fails"
   },
   "overlay_hint_drag": {
     "message": "Drag to select an area",

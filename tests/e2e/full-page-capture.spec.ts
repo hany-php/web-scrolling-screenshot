@@ -142,11 +142,29 @@ test.describe('Phase 1 Full-Page High-DPI Capture E2E', () => {
       const startedAt = Date.now();
       await popupPage.getByTestId('btn-capture-full').click();
 
-      await expect(popupPage.getByTestId('popup-status')).toHaveText('Screenshot saved!', {
-        timeout: 25_000,
-      });
+      await expect(popupPage.getByTestId('popup-status')).toHaveText(
+        'Preview opened — ready to download!',
+        {
+          timeout: 25_000,
+        },
+      );
       const elapsedMs = Date.now() - startedAt;
       expect(elapsedMs).toBeLessThan(20_000);
+
+      let previewPage: import('@playwright/test').Page | undefined;
+      await expect
+        .poll(() => {
+          previewPage = context.pages().find((p) => p.url().includes('/preview.html?jobId='));
+          return Boolean(previewPage);
+        })
+        .toBe(true);
+      if (!previewPage) {
+        throw new Error('Preview tab did not open');
+      }
+      await previewPage.getByTestId('btn-download').click();
+      await expect(previewPage.getByTestId('preview-download-status')).toHaveText('Downloaded!', {
+        timeout: 15_000,
+      });
 
       // Verify host page scroll position & fixed header visibility were restored
       const restored = await fixturePage.evaluate(() => {
@@ -228,8 +246,27 @@ test.describe('Phase 1 Full-Page High-DPI Capture E2E', () => {
       );
       await popupPage.getByTestId('btn-capture-full').click();
 
-      await expect(popupPage.getByTestId('popup-status')).toHaveText('Screenshot saved!', {
-        timeout: 45_000,
+      await expect(popupPage.getByTestId('popup-status')).toHaveText(
+        'Preview opened — ready to download!',
+        {
+          timeout: 45_000,
+        },
+      );
+
+      let previewPage: import('@playwright/test').Page | undefined;
+      await expect
+        .poll(() => {
+          previewPage = context.pages().find((p) => p.url().includes('/preview.html?jobId='));
+          return Boolean(previewPage);
+        })
+        .toBe(true);
+      if (!previewPage) {
+        throw new Error('Preview tab did not open');
+      }
+      await expect(previewPage.getByTestId('preview-parts-badge')).toHaveText('2 parts');
+      await previewPage.getByTestId('btn-download').click();
+      await expect(previewPage.getByTestId('preview-download-status')).toHaveText('Downloaded!', {
+        timeout: 20_000,
       });
 
       const downloadedFiles = await serviceWorker.evaluate(async () => {

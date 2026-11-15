@@ -70,6 +70,14 @@ describe('isValidExtensionMessage', () => {
     ).toBe(true);
     expect(
       isValidExtensionMessage({
+        action: 'FINALIZE_STITCH_JOB',
+        jobId: 'job-1',
+        hostname: 'example.com',
+        mode: 'full',
+      }),
+    ).toBe(true);
+    expect(
+      isValidExtensionMessage({
         action: 'REVOKE_PART_URLS',
         urls: ['blob:chrome-extension://abc/123'],
       }),
@@ -119,6 +127,13 @@ describe('isValidExtensionMessage', () => {
         regionCss: { x: 0, y: 0, width: 100, height: 500 },
       }),
     ).toBe(true);
+    expect(
+      isValidExtensionMessage({
+        action: 'FINALIZE_STITCH_JOB',
+        jobId: 'job-1',
+        hostname: 'example.com',
+      }),
+    ).toBe(false);
     expect(
       isValidExtensionMessage({
         action: 'REVOKE_PART_URLS',

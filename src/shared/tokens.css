@@ -11,6 +11,8 @@
   --wss-accent-hover: #1d4ed8;
   --wss-danger: #dc2626;
   --wss-success: #16a34a;
+  --wss-checker-a: #f1f5f9;
+  --wss-checker-b: #e2e8f0;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -25,6 +27,30 @@
     --wss-accent-hover: #60a5fa;
     --wss-danger: #ef4444;
     --wss-success: #22c55e;
+    --wss-checker-a: #111827;
+    --wss-checker-b: #1e293b;
+  }
+}
+
+.wss-checkerboard {
+  background-color: var(--wss-checker-a);
+  background-image:
+    linear-gradient(45deg, var(--wss-checker-b) 25%, transparent 25%),
+    linear-gradient(-45deg, var(--wss-checker-b) 25%, transparent 25%),
+    linear-gradient(45deg, transparent 75%, var(--wss-checker-b) 75%),
+    linear-gradient(-45deg, transparent 75%, var(--wss-checker-b) 75%);
+  background-size: 16px 16px;
+  background-position:
+    0 0,
+    0 8px,
+    8px -8px,
+    -8px 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    transition-duration: 0ms !important;
+    animation-duration: 0ms !important;
   }
 }
 

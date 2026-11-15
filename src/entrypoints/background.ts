@@ -1,13 +1,10 @@
 import { CaptureRateLimiter } from '../capture/rate-limiter';
 import { isRestrictedPageUrl } from '../capture/restricted-url';
 import type { CapturePlan, CssRect } from '../capture/scroll-planner';
-import {
-  type CaptureStatusSnapshot,
-  isValidExtensionMessage,
-  type StitchedPartOutput,
-} from '../messaging/protocol';
+import { type CaptureStatusSnapshot, isValidExtensionMessage } from '../messaging/protocol';
 import type { CaptureMode } from '../shared/constants';
 import { CaptureError, type CaptureErrorCode } from '../shared/errors';
+import { deleteCaptureRecord } from '../stitcher/capture-store';
 
 interface PrepareResponse {
   readonly ok: boolean;
@@ -30,7 +27,9 @@ interface OffscreenOkResponse {
 
 interface FinalizeResponse {
   readonly ok: boolean;
-  readonly parts?: readonly StitchedPartOutput[];
+  readonly partsCount?: number;
+  readonly totalWidthPx?: number;
+  readonly totalHeightPx?: number;
   readonly error?: string;
 }
 
@@ -48,6 +47,7 @@ interface PendingRegionRecord {
 }
 
 const PENDING_REGION_KEY = 'wss_pending_region_job';
+const PREVIEW_TABS_KEY = 'wss_preview_tabs';
 
 const IDLE_STATE: CaptureStatusSnapshot = {
   status: 'idle',
@@ -94,6 +94,39 @@ async function loadPendingRegionJob(): Promise<PendingRegionRecord | null> {
   return null;
 }
 
+async function loadPreviewTabMap(): Promise<Record<string, string>> {
+  const stored = await chrome.storage.session.get(PREVIEW_TABS_KEY);
+  const raw: unknown = stored[PREVIEW_TABS_KEY];
+  if (typeof raw !== 'object' || raw === null) {
+    return {};
+  }
+  const map: Record<string, string> = {};
+  for (const [key, val] of Object.entries(raw as Record<string, unknown>)) {
+    if (typeof val === 'string') {
+      map[key] = val;
+    }
+  }
+  return map;
+}
+
+async function registerPreviewTab(tabId: number, jobId: string): Promise<void> {
+  const map = await loadPreviewTabMap();
+  map[String(tabId)] = jobId;
+  await chrome.storage.session.set({ [PREVIEW_TABS_KEY]: map });
+}
+
+async function cleanupClosedPreviewTab(tabId: number): Promise<void> {
+  const map = await loadPreviewTabMap();
+  const key = String(tabId);
+  const jobId = map[key];
+  if (jobId === undefined) {
+    return;
+  }
+  const nextMap = Object.fromEntries(Object.entries(map).filter(([entryKey]) => entryKey !== key));
+  await chrome.storage.session.set({ [PREVIEW_TABS_KEY]: nextMap });
+  await deleteCaptureRecord(jobId).catch(() => undefined);
+}
+
 async function ensureOffscreenDocument(): Promise<void> {
   const existing = await chrome.runtime.getContexts({
     contextTypes: ['OFFSCREEN_DOCUMENT'],
@@ -106,7 +139,7 @@ async function ensureOffscreenDocument(): Promise<void> {
     url: 'offscreen.html',
     reasons: [chrome.offscreen.Reason.BLOBS],
     justification:
-      'Stitch High-DPI viewport screenshots using OffscreenCanvas and export PNG blobs',
+      'Stitch High-DPI viewport screenshots using OffscreenCanvas and cache PNG blobs for preview',
   });
 }
 
@@ -118,34 +151,6 @@ async function sendRuntimeMessage<T>(payload: unknown): Promise<T> {
 async function sendTabMessage<T>(tabId: number, payload: unknown): Promise<T> {
   const result: unknown = await chrome.tabs.sendMessage(tabId, payload);
   return result as T;
-}
-
-function waitForDownloadComplete(downloadId: number): Promise<void> {
-  return new Promise((resolve) => {
-    let settled = false;
-    const finish = (): void => {
-      if (settled) {
-        return;
-      }
-      settled = true;
-      chrome.downloads.onChanged.removeListener(onChanged);
-      clearTimeout(timer);
-      resolve();
-    };
-
-    const onChanged = (delta: chrome.downloads.DownloadDelta): void => {
-      if (delta.id !== downloadId) {
-        return;
-      }
-      const state = delta.state?.current;
-      if (state === 'complete' || state === 'interrupted') {
-        finish();
-      }
-    };
-
-    chrome.downloads.onChanged.addListener(onChanged);
-    const timer = setTimeout(finish, 15_000);
-  });
 }
 
 async function resolveTargetTab(targetTabId?: number): Promise<chrome.tabs.Tab> {
@@ -259,28 +264,18 @@ async function executeCapturePipeline(job: ActiveJob, regionCss?: CssRect): Prom
       action: 'FINALIZE_STITCH_JOB',
       jobId,
       hostname,
+      mode,
     });
     offscreenInitialized = false;
 
-    if (!finalized.ok || !finalized.parts || finalized.parts.length === 0) {
+    if (!finalized.ok || (finalized.partsCount ?? 0) === 0) {
       throw new CaptureError('CANVAS_LIMIT', finalized.error ?? 'Failed to finalize PNG output');
     }
 
-    const partUrls = finalized.parts.map((part) => part.objectUrl);
-    try {
-      for (const part of finalized.parts) {
-        const downloadId = await chrome.downloads.download({
-          url: part.objectUrl,
-          filename: part.filename,
-          saveAs: false,
-        });
-        await waitForDownloadComplete(downloadId);
-      }
-    } finally {
-      await sendRuntimeMessage<OffscreenOkResponse>({
-        action: 'REVOKE_PART_URLS',
-        urls: partUrls,
-      }).catch(() => undefined);
+    const previewUrl = chrome.runtime.getURL(`preview.html?jobId=${encodeURIComponent(jobId)}`);
+    const previewTab = await chrome.tabs.create({ url: previewUrl, active: true });
+    if (previewTab.id !== undefined) {
+      await registerPreviewTab(previewTab.id, jobId);
     }
 
     broadcastState({
@@ -288,7 +283,8 @@ async function executeCapturePipeline(job: ActiveJob, regionCss?: CssRect): Prom
       mode,
       completed: total,
       total,
-      downloadedCount: finalized.parts.length,
+      downloadedCount: finalized.partsCount ?? 1,
+      previewJobId: jobId,
     });
   } catch (err: unknown) {
     if (offscreenInitialized) {
@@ -442,6 +438,7 @@ export default defineBackground(() => {
       void clearPendingRegionJob().catch(() => undefined);
       broadcastState({ status: 'cancelled', mode: cancelledMode, completed: 0, total: 0 });
     }
+    void cleanupClosedPreviewTab(closedTabId);
   });
 
   chrome.commands.onCommand.addListener((command) => {

@@ -3,9 +3,9 @@ import {
   type CaptureStep,
   computeTileDrawOperations,
 } from '../capture/scroll-planner';
-import type { StitchedPartOutput } from '../messaging/protocol';
+import type { CaptureMode } from '../shared/constants';
 import { CaptureError } from '../shared/errors';
-import { formatScreenshotFilename } from './filename';
+import type { StoredCapturePart, StoredCaptureRecord } from './capture-store';
 
 interface ActiveJobCanvas {
   readonly canvas: OffscreenCanvas;
@@ -91,15 +91,18 @@ export class CanvasStitcher {
     }
   }
 
-  public async finalizeJob(jobId: string, hostname: string): Promise<StitchedPartOutput[]> {
+  public async finalizeJobToStore(
+    jobId: string,
+    hostname: string,
+    mode: CaptureMode,
+  ): Promise<StoredCaptureRecord> {
     const job = this.jobs.get(jobId);
     if (!job) {
       throw new CaptureError('UNKNOWN', `Missing stitch job ${jobId}`);
     }
 
-    const now = new Date();
     const totalParts = job.chunks.length;
-    const parts: StitchedPartOutput[] = [];
+    const parts: StoredCapturePart[] = [];
 
     try {
       for (let i = 0; i < job.chunks.length; i += 1) {
@@ -107,22 +110,26 @@ export class CanvasStitcher {
         if (!chunk) {
           continue;
         }
-        const blob = await chunk.canvas.convertToBlob({ type: 'image/png' });
-        const objectUrl = URL.createObjectURL(blob);
+        const pngBlob = await chunk.canvas.convertToBlob({ type: 'image/png' });
         parts.push({
-          objectUrl,
-          filename: formatScreenshotFilename({
-            hostname,
-            date: now,
-            partIndex: i,
-            totalParts,
-            format: 'png',
-          }),
+          partIndex: i,
+          totalParts,
           widthPx: chunk.widthPx,
           heightPx: chunk.heightPx,
+          pngBlob,
         });
       }
-      return parts;
+
+      return {
+        jobId,
+        hostname,
+        mode,
+        dpr: job.plan.dpr,
+        totalWidthPx: job.plan.totalWidthPx,
+        totalHeightPx: job.plan.totalHeightPx,
+        createdAt: Date.now(),
+        parts,
+      };
     } finally {
       this.abortJob(jobId);
     }

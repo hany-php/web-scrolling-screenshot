@@ -1,10 +1,8 @@
 name: CI
 
+# Manual trigger only so pushes and PRs do not consume GitHub Actions minutes.
 on:
-  pull_request:
-  push:
-    branches:
-      - main
+  workflow_dispatch:
 
 permissions:
   contents: read

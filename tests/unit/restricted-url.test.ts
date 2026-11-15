@@ -11,11 +11,15 @@ describe('isRestrictedPageUrl', () => {
   it('flags internal browser and webstore URLs as restricted', () => {
     expect(isRestrictedPageUrl(undefined)).toBe(true);
     expect(isRestrictedPageUrl('chrome://extensions')).toBe(true);
+    expect(isRestrictedPageUrl('chrome-extension://abc/popup.html')).toBe(true);
     expect(isRestrictedPageUrl('edge://settings')).toBe(true);
     expect(isRestrictedPageUrl('about:blank')).toBe(true);
+    expect(isRestrictedPageUrl('view-source:https://example.com')).toBe(true);
     expect(isRestrictedPageUrl('https://chromewebstore.google.com/detail/foo')).toBe(true);
     expect(isRestrictedPageUrl('https://chrome.google.com/webstore/category/extensions')).toBe(
       true,
     );
+    expect(isRestrictedPageUrl('https://microsoftedge.microsoft.com/addons/detail/foo')).toBe(true);
+    expect(isRestrictedPageUrl('https://example.com/specs/manual.pdf?download=1')).toBe(true);
   });
 });

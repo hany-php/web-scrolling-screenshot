@@ -1,9 +1,11 @@
+import { findInnerScrollContainer } from '../capture/inner-scroller';
 import { settleViewportPaint } from '../capture/lazy-loader';
 import { type CapturePlan, type CssRect, computeCapturePlan } from '../capture/scroll-planner';
 import { type ActiveSelectionSession, startRegionSelection } from '../capture/selection-overlay';
 import { StickyManager } from '../capture/sticky-manager';
-import { getTextDirection, t } from '../i18n/messages';
+import { getTextDirection, setPreferredLocale, t } from '../i18n/messages';
 import { isValidExtensionMessage } from '../messaging/protocol';
+import { loadExportPreferences } from '../shared/preferences';
 
 interface SavedScrollState {
   readonly origScrollX: number;
@@ -12,6 +14,11 @@ interface SavedScrollState {
   readonly docBehaviorPriority: string;
   readonly bodyBehaviorValue: string;
   readonly bodyBehaviorPriority: string;
+  readonly innerContainer: HTMLElement | null;
+  readonly innerOrigScrollX: number;
+  readonly innerOrigScrollY: number;
+  readonly innerBehaviorValue: string;
+  readonly innerBehaviorPriority: string;
   readonly stickyManager: StickyManager;
 }
 
@@ -19,7 +26,7 @@ const activeSessions = new Map<string, SavedScrollState>();
 let activeSelection: { readonly jobId: string; readonly session: ActiveSelectionSession } | null =
   null;
 
-function getPageDimensions(): {
+function getPageDimensions(innerContainer?: HTMLElement | null): {
   pageWidthCss: number;
   pageHeightCss: number;
   viewportWidthCss: number;
@@ -28,12 +35,14 @@ function getPageDimensions(): {
 } {
   const docEl = document.documentElement;
   const body = document.body as HTMLElement | null;
+  const container = innerContainer ?? null;
 
   const pageWidthCss = Math.max(
     docEl.scrollWidth,
     docEl.clientWidth,
     body?.scrollWidth ?? 0,
     body?.clientWidth ?? 0,
+    container?.scrollWidth ?? 0,
     1,
   );
   const pageHeightCss = Math.max(
@@ -41,6 +50,7 @@ function getPageDimensions(): {
     docEl.clientHeight,
     body?.scrollHeight ?? 0,
     body?.clientHeight ?? 0,
+    container?.scrollHeight ?? 0,
     1,
   );
 
@@ -57,8 +67,13 @@ function prepareSession(
   jobId: string,
   regionCss?: CssRect,
 ): { plan: CapturePlan; hostname: string } {
+  if (document.contentType === 'application/pdf') {
+    throw new Error('Cannot access restricted PDF document');
+  }
+
   const docEl = document.documentElement;
   const body = document.body as HTMLElement | null;
+  const innerContainer = regionCss ? null : findInnerScrollContainer();
 
   const saved: SavedScrollState = {
     origScrollX: window.scrollX,
@@ -67,6 +82,15 @@ function prepareSession(
     docBehaviorPriority: docEl.style.getPropertyPriority('scroll-behavior'),
     bodyBehaviorValue: body ? body.style.getPropertyValue('scroll-behavior') : '',
     bodyBehaviorPriority: body ? body.style.getPropertyPriority('scroll-behavior') : '',
+    innerContainer,
+    innerOrigScrollX: innerContainer ? innerContainer.scrollLeft : 0,
+    innerOrigScrollY: innerContainer ? innerContainer.scrollTop : 0,
+    innerBehaviorValue: innerContainer
+      ? innerContainer.style.getPropertyValue('scroll-behavior')
+      : '',
+    innerBehaviorPriority: innerContainer
+      ? innerContainer.style.getPropertyPriority('scroll-behavior')
+      : '',
     stickyManager: new StickyManager(),
   };
 
@@ -76,8 +100,11 @@ function prepareSession(
   if (body) {
     body.style.setProperty('scroll-behavior', 'auto', 'important');
   }
+  if (innerContainer) {
+    innerContainer.style.setProperty('scroll-behavior', 'auto', 'important');
+  }
 
-  const plan = computeCapturePlan(getPageDimensions(), regionCss);
+  const plan = computeCapturePlan(getPageDimensions(innerContainer), regionCss);
   return {
     plan,
     hostname: window.location.hostname || 'local-page',
@@ -93,6 +120,23 @@ function restoreSession(jobId: string): void {
 
   try {
     saved.stickyManager.restoreAll();
+    if (saved.innerContainer) {
+      saved.innerContainer.scrollTo({
+        left: saved.innerOrigScrollX,
+        top: saved.innerOrigScrollY,
+        behavior: 'instant',
+      });
+      if (saved.innerBehaviorValue.length > 0) {
+        saved.innerContainer.style.setProperty(
+          'scroll-behavior',
+          saved.innerBehaviorValue,
+          saved.innerBehaviorPriority,
+        );
+      } else {
+        saved.innerContainer.style.removeProperty('scroll-behavior');
+      }
+    }
+
     window.scrollTo({
       left: saved.origScrollX,
       top: saved.origScrollY,
@@ -123,11 +167,14 @@ function restoreSession(jobId: string): void {
   }
 }
 
-function handleStartRegionSelect(jobId: string): void {
+async function handleStartRegionSelect(jobId: string): Promise<void> {
   if (activeSelection !== null) {
     activeSelection.session.cancel();
     activeSelection = null;
   }
+
+  const prefs = await loadExportPreferences();
+  setPreferredLocale(prefs.locale);
 
   const session = startRegionSelection(
     {
@@ -180,9 +227,10 @@ export default defineUnlistedScript(() => {
 
     switch (message.action) {
       case 'START_REGION_SELECT': {
-        handleStartRegionSelect(message.jobId);
-        sendResponse({ ok: true });
-        return false;
+        void handleStartRegionSelect(message.jobId).then(() => {
+          sendResponse({ ok: true });
+        });
+        return true;
       }
 
       case 'CANCEL_REGION_SELECT': {
@@ -214,11 +262,19 @@ export default defineUnlistedScript(() => {
           return false;
         }
 
-        window.scrollTo({
-          left: message.step.scrollXCss,
-          top: message.step.scrollYCss,
-          behavior: 'instant',
-        });
+        if (session.innerContainer) {
+          session.innerContainer.scrollTo({
+            left: message.step.scrollXCss,
+            top: message.step.scrollYCss,
+            behavior: 'instant',
+          });
+        } else {
+          window.scrollTo({
+            left: message.step.scrollXCss,
+            top: message.step.scrollYCss,
+            behavior: 'instant',
+          });
+        }
 
         session.stickyManager.suppressAfterFirstTile(
           message.step.scrollXCss,
@@ -228,8 +284,12 @@ export default defineUnlistedScript(() => {
         void settleViewportPaint().then(() => {
           sendResponse({
             ok: true,
-            actualScrollXCss: window.scrollX,
-            actualScrollYCss: window.scrollY,
+            actualScrollXCss: session.innerContainer
+              ? session.innerContainer.scrollLeft
+              : window.scrollX,
+            actualScrollYCss: session.innerContainer
+              ? session.innerContainer.scrollTop
+              : window.scrollY,
           });
         });
         return true;

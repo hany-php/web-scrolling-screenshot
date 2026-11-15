@@ -45,14 +45,24 @@ describe('export-utils & preferences', () => {
   });
 
   it('normalizes persisted export preferences safely with fallback defaults', () => {
-    expect(normalizeExportPreferences(null)).toEqual({ format: 'png', qualityPercent: 92 });
-    expect(normalizeExportPreferences({ format: 'webp', qualityPercent: 80 })).toEqual({
+    expect(normalizeExportPreferences(null)).toEqual({
+      format: 'png',
+      qualityPercent: 92,
+      locale: 'auto',
+    });
+    expect(
+      normalizeExportPreferences({ format: 'webp', qualityPercent: 80, locale: 'ar' }),
+    ).toEqual({
       format: 'webp',
       qualityPercent: 80,
+      locale: 'ar',
     });
-    expect(normalizeExportPreferences({ format: 'bmp', qualityPercent: 12 })).toEqual({
-      format: 'png',
-      qualityPercent: 60,
-    });
+    expect(normalizeExportPreferences({ format: 'bmp', qualityPercent: 12, locale: 'fr' })).toEqual(
+      {
+        format: 'png',
+        qualityPercent: 60,
+        locale: 'auto',
+      },
+    );
   });
 });

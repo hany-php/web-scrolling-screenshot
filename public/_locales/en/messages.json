@@ -60,8 +60,8 @@
     "description": "Button to abort active capture"
   },
   "popup_error_restricted_page": {
-    "message": "Browser system pages and store pages cannot be captured for security reasons.",
-    "description": "Friendly error when active tab is chrome:// or Web Store"
+    "message": "Browser system pages, extension stores, and built-in PDF viewers cannot be captured for security reasons.",
+    "description": "Friendly error when active tab is chrome://, Web Store, or PDF viewer"
   },
   "popup_error_generic": {
     "message": "Capture failed. Please refresh the page and try again.",
@@ -164,5 +164,9 @@
   "cmd_capture_region": {
     "message": "Select and capture custom page region",
     "description": "Keyboard command description for drag-to-select region capture"
+  },
+  "popup_switch_lang_label": {
+    "message": "Switch interface language between Arabic and English",
+    "description": "Accessible label for language switcher button"
   }
 }

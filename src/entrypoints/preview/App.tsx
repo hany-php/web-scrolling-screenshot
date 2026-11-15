@@ -1,6 +1,11 @@
 import { Check, Download, Maximize2, ZoomIn, ZoomOut } from 'lucide-react';
 import { type ReactElement, useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { t } from '../../i18n/messages';
+import {
+  applyDocumentDirection,
+  getEffectiveLocale,
+  setPreferredLocale,
+  t,
+} from '../../i18n/messages';
 import type { ExportFormat } from '../../shared/constants';
 import {
   DEFAULT_EXPORT_PREFERENCES,
@@ -58,7 +63,12 @@ export function App(): ReactElement {
   }, []);
 
   useEffect(() => {
-    void loadExportPreferences().then(setPrefs);
+    void loadExportPreferences().then((loaded) => {
+      setPreferredLocale(loaded.locale);
+      applyDocumentDirection();
+      document.title = t('preview_title', 'Screenshot Preview');
+      setPrefs(loaded);
+    });
   }, []);
 
   useEffect(() => {
@@ -161,11 +171,21 @@ export function App(): ReactElement {
   }, [applyFitZoom, loadStatus, record]);
 
   function updatePreferences(next: ExportPreferences): void {
+    setPreferredLocale(next.locale);
+    applyDocumentDirection();
+    document.title = t('preview_title', 'Screenshot Preview');
     setPrefs(next);
     setCompressedBytes(null);
     setDownloadState('idle');
     void saveExportPreferences(next);
   }
+
+  function handleToggleLocale(): void {
+    const nextLocale = getEffectiveLocale() === 'ar' ? 'en' : 'ar';
+    updatePreferences({ ...prefs, locale: nextLocale });
+  }
+
+  const activeLocale = getEffectiveLocale();
 
   const pngTotalBytes = useMemo(
     () => (record ? record.parts.reduce((sum, p) => sum + p.pngBlob.size, 0) : 0),
@@ -237,9 +257,24 @@ export function App(): ReactElement {
     <main className="flex min-h-screen flex-col bg-[var(--wss-bg-canvas)]">
       <header className="sticky top-0 z-20 flex min-h-14 flex-wrap items-center justify-between gap-3 border-b border-[var(--wss-border)] bg-[var(--wss-bg-surface)] px-4 py-2 shadow-xs">
         <div className="flex flex-wrap items-center gap-2.5">
-          <h1 className="text-sm font-semibold text-[var(--wss-text-primary)]">
+          <h1
+            data-testid="preview-title"
+            className="text-sm font-semibold text-[var(--wss-text-primary)]"
+          >
             {t('preview_title', 'Screenshot Preview')}
           </h1>
+          <button
+            type="button"
+            data-testid="btn-toggle-locale"
+            aria-label={t(
+              'popup_switch_lang_label',
+              'Switch interface language between Arabic and English',
+            )}
+            onClick={handleToggleLocale}
+            className="cursor-pointer rounded-full border border-[var(--wss-border)] bg-[var(--wss-bg-elevated)] px-2.5 py-0.5 text-xs font-semibold text-[var(--wss-text-primary)] transition-colors hover:border-[var(--wss-accent)]"
+          >
+            {activeLocale === 'ar' ? 'EN' : 'العربية'}
+          </button>
           <span
             dir="ltr"
             data-testid="preview-dimensions"

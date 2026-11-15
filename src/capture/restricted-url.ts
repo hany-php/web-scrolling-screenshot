@@ -32,6 +32,9 @@ export function isRestrictedPageUrl(rawUrl: string | undefined): boolean {
       }
       return true;
     }
+    if (parsed.pathname.toLowerCase().endsWith('.pdf')) {
+      return true;
+    }
     return (
       parsed.protocol !== 'http:' && parsed.protocol !== 'https:' && parsed.protocol !== 'file:'
     );

@@ -5,9 +5,12 @@ import {
 } from '../stitcher/export-utils';
 import type { ExportFormat } from './constants';
 
+export type UiLocalePreference = 'auto' | 'en' | 'ar';
+
 export interface ExportPreferences {
   readonly format: ExportFormat;
   readonly qualityPercent: number;
+  readonly locale: UiLocalePreference;
 }
 
 export const EXPORT_PREFERENCES_KEY = 'wss_export_preferences';
@@ -15,7 +18,12 @@ export const EXPORT_PREFERENCES_KEY = 'wss_export_preferences';
 export const DEFAULT_EXPORT_PREFERENCES: ExportPreferences = {
   format: 'png',
   qualityPercent: DEFAULT_QUALITY_PERCENT,
+  locale: 'auto',
 };
+
+function isUiLocalePreference(value: unknown): value is UiLocalePreference {
+  return value === 'auto' || value === 'en' || value === 'ar';
+}
 
 export function normalizeExportPreferences(raw: unknown): ExportPreferences {
   if (typeof raw !== 'object' || raw === null) {
@@ -27,10 +35,12 @@ export function normalizeExportPreferences(raw: unknown): ExportPreferences {
     typeof record['qualityPercent'] === 'number'
       ? record['qualityPercent']
       : DEFAULT_QUALITY_PERCENT;
+  const locale = isUiLocalePreference(record['locale']) ? record['locale'] : 'auto';
 
   return {
     format,
     qualityPercent: clampQualityPercent(rawQuality),
+    locale,
   };
 }
 

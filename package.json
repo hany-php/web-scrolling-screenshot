@@ -1,6 +1,6 @@
 {
   "name": "web-scrolling-screenshot",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "private": true,
   "type": "module",
   "description": "High-DPI client-side Chromium MV3 extension for full-page and region scrolling screenshots.",

@@ -1,6 +1,11 @@
 import { Camera, Crop, XCircle } from 'lucide-react';
 import { type ReactElement, useEffect, useState } from 'react';
-import { t } from '../../i18n/messages';
+import {
+  applyDocumentDirection,
+  getEffectiveLocale,
+  setPreferredLocale,
+  t,
+} from '../../i18n/messages';
 import { type CaptureStatusSnapshot, isValidExtensionMessage } from '../../messaging/protocol';
 import type { CaptureMode, ExportFormat } from '../../shared/constants';
 import type { CaptureErrorCode } from '../../shared/errors';
@@ -68,7 +73,11 @@ export function App(): ReactElement {
   const [prefs, setPrefs] = useState<ExportPreferences>(DEFAULT_EXPORT_PREFERENCES);
 
   useEffect(() => {
-    void loadExportPreferences().then(setPrefs);
+    void loadExportPreferences().then((loaded) => {
+      setPreferredLocale(loaded.locale);
+      applyDocumentDirection();
+      setPrefs(loaded);
+    });
 
     chrome.runtime.sendMessage(
       { action: 'GET_CAPTURE_STATE' },
@@ -131,24 +140,53 @@ export function App(): ReactElement {
   }
 
   function updatePrefs(next: ExportPreferences): void {
+    setPreferredLocale(next.locale);
+    applyDocumentDirection();
     setPrefs(next);
     void saveExportPreferences(next);
   }
 
+  function handleToggleLocale(): void {
+    const nextLocale = getEffectiveLocale() === 'ar' ? 'en' : 'ar';
+    updatePrefs({ ...prefs, locale: nextLocale });
+  }
+
+  const activeLocale = getEffectiveLocale();
+  const manifestVersion =
+    typeof chrome !== 'undefined' && typeof chrome.runtime.getManifest === 'function'
+      ? chrome.runtime.getManifest().version
+      : '1.0.0';
   const formats: readonly ExportFormat[] = ['png', 'jpeg', 'webp'];
 
   return (
     <main className="flex flex-col gap-3 p-4">
-      <header className="flex items-center justify-between border-b border-[var(--wss-border)] pb-3">
+      <header className="flex items-center justify-between gap-2 border-b border-[var(--wss-border)] pb-3">
         <h1
           className="text-sm font-semibold text-[var(--wss-text-primary)]"
           data-testid="popup-title"
         >
           {t('popup_title', 'Web Scrolling Screenshot')}
         </h1>
-        <span className="rounded-full bg-[var(--wss-bg-elevated)] px-2 py-0.5 text-[11px] font-medium text-[var(--wss-text-secondary)]">
-          v0.1.0
-        </span>
+        <div className="flex items-center gap-1.5">
+          <button
+            type="button"
+            data-testid="btn-toggle-locale"
+            aria-label={t(
+              'popup_switch_lang_label',
+              'Switch interface language between Arabic and English',
+            )}
+            onClick={handleToggleLocale}
+            className="cursor-pointer rounded-full border border-[var(--wss-border)] bg-[var(--wss-bg-surface)] px-2 py-0.5 text-[11px] font-semibold text-[var(--wss-text-primary)] transition-colors hover:border-[var(--wss-accent)] hover:bg-[var(--wss-bg-elevated)]"
+          >
+            {activeLocale === 'ar' ? 'EN' : 'العربية'}
+          </button>
+          <span
+            dir="ltr"
+            className="rounded-full bg-[var(--wss-bg-elevated)] px-2 py-0.5 text-[11px] font-medium text-[var(--wss-text-secondary)]"
+          >
+            v{manifestVersion}
+          </span>
+        </div>
       </header>
 
       {isBusy ? (
